@@ -42,10 +42,12 @@ set(SOURCES
  "engine/utils.h"  
  "engine/buffer.h" "engine/buffer.cpp" 
  "engine/frameInfo.h" 
- "engine/descriptors.h" "engine/descriptors.cpp")
+ "engine/descriptors.h" "engine/descriptors.cpp"
+ "engine/texture.h" "engine/texture.cpp"
+)
 
 # Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES} "engine/texture.h")
 add_dependencies(${PROJECT_NAME} Shaders)
 
 # Link libraries

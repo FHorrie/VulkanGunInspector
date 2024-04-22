@@ -45,9 +45,14 @@ namespace FH
 		std::vector<FHGameObject2D> m_GameObjects2D{};
 	};
 
-	struct UniBufferObj
+	struct GlobalUniBuffer
 	{
 		glm::mat4 m_ProjectionView{1.f};
 		glm::vec3 m_LightDirection{ glm::normalize(glm::vec3{1.f, -3.f, -1.f}) };
+	};
+
+	struct MaterialUniBuffer
+	{
+		
 	};
 }

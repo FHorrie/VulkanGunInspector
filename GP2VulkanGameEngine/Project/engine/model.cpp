@@ -1,9 +1,6 @@
 #include "model.h"
 #include "utils.h"
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "external/stb_image.h"
-
 #define TINYOBJECTLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #define GLM_ENABLE_EXPERIMENTAL
@@ -154,37 +151,6 @@ void FH::FHModel::CreateIndexBuffers(const std::vector<uint32_t>& indices)
 		);
 
 	m_FHDevice.CopyBuffer(stagingBuffer.GetBuffer(), m_pIndexBuffer->GetBuffer(), bufferSize);
-}
-
-void FH::FHModel::CreateTextureBuffer(const VkImage& image, uint32_t imageSize)
-{
-	m_HasTextureBuffer = imageSize > 0;
-	if (!m_HasTextureBuffer) return;
-
-	VkDeviceSize bufferSize{ imageSize };
-
-	FHBuffer stagingBuffer
-	{
-		m_FHDevice,
-		imageSize,
-		1,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	};
-
-	stagingBuffer.Map();
-	stagingBuffer.WriteToBuffer((void*)image);
-
-	m_pTextureBuffer = std::make_unique<FHBuffer>
-		(
-			m_FHDevice,
-			imageSize,
-			1,
-			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-			VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-		);
-
-	m_FHDevice.CopyBuffer(stagingBuffer.GetBuffer(), m_pTextureBuffer->GetBuffer(), bufferSize);
 }
 
 std::unique_ptr<FH::FHModel> FH::FHModel::CreateModelFromFile(FHDevice& device, const std::string& filePath)

@@ -56,7 +56,6 @@ namespace FH
 	private:
 		void CreateVertexBuffers(const std::vector<Vertex>& vertices);
 		void CreateIndexBuffers(const std::vector<uint32_t>& indices);
-		void CreateTextureBuffer(const VkImage& image, uint32_t imageSize);
 
 		FHDevice& m_FHDevice;
 
@@ -66,9 +65,6 @@ namespace FH
 		bool m_HasIndexBuffer{ false };
 		std::unique_ptr<FHBuffer> m_pIndexBuffer;
 		uint32_t m_IndexCount = 0;
-
-		bool m_HasTextureBuffer{ false };
-		std::unique_ptr<FHBuffer> m_pTextureBuffer;
 	};
 
 	class FHModel2D

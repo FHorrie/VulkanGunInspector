@@ -11,8 +11,8 @@ namespace FH {
     public:
         class Builder {
         public:
-            Builder(FHDevice& device) 
-                : m_FHDevice{ device } 
+            Builder(FHDevice& device)
+                : m_FHDevice{ device }
             {}
 
             Builder& AddBinding(
@@ -38,8 +38,8 @@ namespace FH {
 
     private:
         FHDevice& m_FHDevice;
-        VkDescriptorSetLayout m_DescriptorSetLayout;
-        std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> m_Bindings;
+        VkDescriptorSetLayout m_DescriptorSetLayout{};
+        std::unordered_map<uint32_t, VkDescriptorSetLayoutBinding> m_Bindings{};
 
         friend class FHDescriptorWriter;
     };
@@ -80,7 +80,7 @@ namespace FH {
 
     private:
         FHDevice& m_FHDevice;
-        VkDescriptorPool m_DescriptorPool;
+        VkDescriptorPool m_DescriptorPool{};
 
         friend class FHDescriptorWriter;
     };
@@ -98,6 +98,6 @@ namespace FH {
     private:
         FHDescriptorSetLayout& m_SetLayout;
         FHDescriptorPool& m_Pool;
-        std::vector<VkWriteDescriptorSet> m_Writes;
+        std::vector<VkWriteDescriptorSet> m_Writes{};
     };
 }

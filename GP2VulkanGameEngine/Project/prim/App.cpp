@@ -31,30 +31,44 @@ void FH::FirstApp::Run()
     ////////////////////////
     // UNIFORM BUFFER LOGIC
     ////////////////////////
-    std::vector<std::unique_ptr<FHBuffer>> uniBuffers(FHSwapChain::MAX_FRAMES_IN_FLIGHT);
-    for (int i{}; i < static_cast<int>(uniBuffers.size()); i++)
+    std::vector<std::unique_ptr<FHBuffer>> globalUniBuffers(FHSwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i{}; i < static_cast<int>(globalUniBuffers.size()); i++)
     {
-        uniBuffers[i] = std::make_unique<FHBuffer>(
+        globalUniBuffers[i] = std::make_unique<FHBuffer>(
             m_FHDevice,
-            sizeof(UniBufferObj),
+            sizeof(GlobalUniBuffer),
             1,
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
         );
-        uniBuffers[i]->Map();
+        globalUniBuffers[i]->Map();
+    }
+
+    std::vector<std::unique_ptr<FHBuffer>> textureUniBuffers(FHSwapChain::MAX_FRAMES_IN_FLIGHT);
+    for (int i{}; i < static_cast<int>(textureUniBuffers.size()); i++)
+    {
+        textureUniBuffers[i] = std::make_unique<FHBuffer>(
+            m_FHDevice,
+            sizeof(MaterialUniBuffer),
+            1,
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT
+        );
+        globalUniBuffers[i]->Map();
     }
 
     auto appSetLayout
     {
         FHDescriptorSetLayout::Builder(m_FHDevice)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
+            .AddBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT)
             .Build()
     };
 
     std::vector<VkDescriptorSet> appDescriptorSets(FHSwapChain::MAX_FRAMES_IN_FLIGHT);
     for (int i{}; i < static_cast<int>(appDescriptorSets.size()); ++i)
     {
-        auto bufferInfo{ uniBuffers[i]->GetDescriptorInfo() };
+        auto bufferInfo{ globalUniBuffers[i]->GetDescriptorInfo() };
         FHDescriptorWriter(*appSetLayout, *m_pAppPool)
             .WriteBuffer(0, &bufferInfo)
             .Build(appDescriptorSets[i]);
@@ -86,10 +100,10 @@ void FH::FirstApp::Run()
             FHFrameInfo frameInfo{ frameIdx, commandBuffer, camera, appDescriptorSets[frameIdx]};
 
             //update
-            UniBufferObj ubo{};
+            GlobalUniBuffer ubo{};
             ubo.m_ProjectionView = camera.GetProjectionMatrix() * camera.GetViewMatrix();
-            uniBuffers[frameIdx]->WriteToBuffer(&ubo);
-            uniBuffers[frameIdx]->FlushBufferMemRange();
+            globalUniBuffers[frameIdx]->WriteToBuffer(&ubo);
+            globalUniBuffers[frameIdx]->FlushBufferMemRange();
 
             if(m_ModelRotate)
                 for (int idx{}; idx < static_cast<int>(m_GameObjects.size()); ++idx)

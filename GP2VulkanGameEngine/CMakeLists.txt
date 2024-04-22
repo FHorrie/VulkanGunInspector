@@ -15,13 +15,6 @@ FetchContent_Declare(
   GIT_TAG        3.3.8 # Specify the version you need
 )
 
-# FetchContent_Declare(
-#   stb
-#   GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
-#   GIT_TAG        v1.0.6
-#   GIT_SHALLOW	 1
-# )
-
 FetchContent_Declare(
   tinyobjloader
   GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
