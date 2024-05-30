@@ -24,6 +24,26 @@ FH::FHSwapChain::FHSwapChain(FHDevice& deviceRef, VkExtent2D extent, std::shared
     Init();
 }
 
+VkImageView FH::FHSwapChain::CreateImageView(FHDevice& deviceRef, VkImage image, VkFormat format)
+{
+    VkImageViewCreateInfo viewInfo{};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView{};
+    if (vkCreateImageView(deviceRef.GetDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+        throw std::runtime_error("failed to create texture image view!");
+
+    return imageView;
+}
+
 void FH::FHSwapChain::Init()
 {
     CreateSwapChain();
@@ -200,23 +220,9 @@ void FH::FHSwapChain::CreateSwapChain()
 void FH::FHSwapChain::CreateImageViews() 
 {
     m_SwapChainImageViews.resize(m_SwapChainImages.size());
-    for (size_t i = 0; i < m_SwapChainImages.size(); i++) {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = m_SwapChainImages[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = m_SwapChainImageFormat;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(m_FHDevice.GetDevice(), &viewInfo, nullptr, &m_SwapChainImageViews[i]) !=
-            VK_SUCCESS) {
-            throw std::runtime_error("failed to create texture image view!");
-        }
-    }
+    for (size_t i = 0; i < m_SwapChainImages.size(); i++)
+        m_SwapChainImageViews[i] = CreateImageView(m_FHDevice, m_SwapChainImages[i],
+            m_SwapChainImageFormat);
 }
 
 void FH::FHSwapChain::CreateRenderPass() 
@@ -276,9 +282,8 @@ void FH::FHSwapChain::CreateRenderPass()
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(m_FHDevice.GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+    if (vkCreateRenderPass(m_FHDevice.GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) 
         throw std::runtime_error("failed to create render pass!");
-    }
 }
 
 void FH::FHSwapChain::CreateFramebuffers() 
@@ -297,7 +302,8 @@ void FH::FHSwapChain::CreateFramebuffers()
         framebufferInfo.height = swapChainExtent.height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(m_FHDevice.GetDevice(), &framebufferInfo, nullptr, &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(m_FHDevice.GetDevice(), &framebufferInfo, nullptr, 
+            &m_SwapChainFramebuffers[i]) != VK_SUCCESS)
             throw std::runtime_error("failed to create framebuffer!");
     }
 }
@@ -346,9 +352,9 @@ void FH::FHSwapChain::CreateDepthResources()
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(m_FHDevice.GetDevice(), &viewInfo, nullptr, &m_DepthImageViews[i]) != VK_SUCCESS) {
+        if (vkCreateImageView(m_FHDevice.GetDevice(), &viewInfo, nullptr, &m_DepthImageViews[i]) 
+            != VK_SUCCESS)
             throw std::runtime_error("failed to create texture image view!");
-        }
     }
 }
 
@@ -367,10 +373,10 @@ void FH::FHSwapChain::CreateSyncObjects()
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(m_FHDevice.GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[i]) !=
-            VK_SUCCESS ||
-            vkCreateSemaphore(m_FHDevice.GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[i]) !=
-            VK_SUCCESS ||
+        if (vkCreateSemaphore(m_FHDevice.GetDevice(), &semaphoreInfo, nullptr, 
+            &m_ImageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(m_FHDevice.GetDevice(), &semaphoreInfo, nullptr, 
+                &m_RenderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(m_FHDevice.GetDevice(), &fenceInfo, nullptr, &m_InFlightFences[i]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
@@ -380,9 +386,11 @@ void FH::FHSwapChain::CreateSyncObjects()
 VkSurfaceFormatKHR FH::FHSwapChain::ChooseSwapSurfaceFormat(
     const std::vector<VkSurfaceFormatKHR>& availableFormats) 
 {
-    for (const auto& availableFormat : availableFormats) {
+    for (const auto& availableFormat : availableFormats) 
+    {
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
-            availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
+        {
             return availableFormat;
         }
     }

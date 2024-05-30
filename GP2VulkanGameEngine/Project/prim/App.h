@@ -6,9 +6,11 @@
 #include "engine/gameObject.h"
 #include "engine/buffer.h"
 #include "engine/descriptors.h"
+#include "engine/texture.h"
 
 #include <memory>
 #include <vector>
+#include <array>
 
 namespace FH
 {
@@ -31,9 +33,9 @@ namespace FH
 
 	private:
 		void LoadGameObjects();
-		void LoadGameObjects2D();
+		//void LoadGameObjects2D();
 
-		FHWindow m_FHWindow{ WIDTH, HEIGHT, "GP2VulkanEngine - Horrie Finian - 2DAE09" };
+		FHWindow m_FHWindow{ WIDTH, HEIGHT, "BULKAN - Horrie Finian - 2DAE09" };
 		FHDevice m_FHDevice{ m_FHWindow };
 		FHRenderer m_FHRenderer{ m_FHWindow, m_FHDevice };
 
@@ -41,18 +43,24 @@ namespace FH
 
 		//Define pool after device
 		std::unique_ptr<FHDescriptorPool> m_pAppPool{};
-		std::vector<FHGameObject> m_GameObjects{};
-		std::vector<FHGameObject2D> m_GameObjects2D{};
+		std::vector<std::unique_ptr<FHGameObject>> m_Models{};
+		std::vector<std::unique_ptr<FHGameObject>> m_DirLights{};
+
+		//std::vector<FHGameObject2D> m_GameObjects2D{};;
 	};
 
-	struct GlobalUniBuffer
+	struct DirectionalLight
 	{
-		glm::mat4 m_ProjectionView{1.f};
-		glm::vec3 m_LightDirection{ glm::normalize(glm::vec3{1.f, -3.f, -1.f}) };
+		glm::vec4 m_Direction{};
+		glm::vec4 m_Color{};
 	};
 
-	struct MaterialUniBuffer
+	struct GlobalUbo
 	{
-		
+		glm::mat4 m_Projection{ 1.f };
+		glm::mat4 m_View{ 1.f };
+		glm::vec4 m_AmbientLightColor{ 1.f, 1.f, 1.f, 0.02f/*-> light intensity*/};
+		DirectionalLight m_DirectionalLights[3]{};
+		int m_DirectionalLightAmount{};
 	};
 }

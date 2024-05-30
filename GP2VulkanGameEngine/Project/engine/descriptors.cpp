@@ -156,7 +156,8 @@ FH::FHDescriptorWriter& FH::FHDescriptorWriter::WriteBuffer(uint32_t binding, Vk
     return *this;
 }
 
-FH::FHDescriptorWriter& FH::FHDescriptorWriter::WriteImage(uint32_t binding, VkDescriptorImageInfo* imageInfo) 
+FH::FHDescriptorWriter& FH::FHDescriptorWriter::WriteImage(
+    uint32_t binding, VkDescriptorImageInfo* imageInfo) 
 {
     assert(m_SetLayout.m_Bindings.count(binding) == 1 && "Layout does not contain specified binding");
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "model.h"
+#include "texture.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -13,7 +14,7 @@ namespace FH
 		glm::vec3 scale{1.f, 1.f ,1.f};
 		glm::vec3 rotation{};
 
-		glm::mat4 GetMatrix();
+		glm::mat4 GetModelMatrix();
 		glm::mat3 GetNormalMatrix();
 	};
 
@@ -43,6 +44,12 @@ namespace FH
 		}
 	};
 
+	struct DirectionalLightComponent
+	{
+		float lightIntensity{};
+		glm::vec3 direction{};
+	};
+
 	class FHGameObject
 	{
 	public:
@@ -51,6 +58,13 @@ namespace FH
 			static unsigned int currentId{};
 			return FHGameObject{ currentId++ };
 		}
+
+		static FHGameObject CreateDirectionalLight(
+			float intensity = 1.f,
+			glm::vec3 direction = glm::vec3{ 1.f, 3.f, 1.f }, 
+			glm::vec3 color = glm::vec3(1.f)
+		);
+
 		~FHGameObject() = default;
 		FHGameObject(const FHGameObject&) = delete;
 		FHGameObject& operator=(const FHGameObject&) = delete;
@@ -59,15 +73,27 @@ namespace FH
 
 		unsigned int GetId() { return m_Id; }
 
-		std::shared_ptr<FHModel> m_Model{};
-		glm::vec3 m_Color{};
-		TransformComponent m_Transform{};
-	private:
-		FHGameObject(unsigned int objectId)
-			: m_Id{objectId} 
-		{}
+		std::unique_ptr<FHModel> m_Model{};
 
-		unsigned int m_Id{};
+		std::unique_ptr<FHTexture> m_DiffuseTexture{};
+
+		std::unique_ptr<DirectionalLightComponent> m_DirLightComp{ nullptr };
+		glm::vec3 m_Color{};
+
+		TransformComponent m_Transform{};
+
+		VkDescriptorSet GetDescriptorSetAtFrame(int frame) const 
+		{
+			return m_ObjectDescriptorSets[frame];
+		}
+
+		void SetDescriptorSetAtFrame(int frame, VkDescriptorSet descriptorSet);
+
+	private:
+		FHGameObject(uint32_t objectId);
+
+		uint32_t m_Id{};
+		std::vector<VkDescriptorSet> m_ObjectDescriptorSets;
 	};
 
 	class FHGameObject2D

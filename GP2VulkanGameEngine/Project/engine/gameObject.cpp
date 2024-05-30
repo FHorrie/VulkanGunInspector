@@ -1,6 +1,6 @@
 #include "gameObject.h"
 
-glm::mat4 FH::TransformComponent::GetMatrix()
+glm::mat4 FH::TransformComponent::GetModelMatrix()
 {
 	const float cosY{ glm::cos(rotation.y) };
 	const float sinY{ glm::sin(rotation.y) };
@@ -65,4 +65,27 @@ glm::mat3 FH::TransformComponent::GetNormalMatrix()
 			invScale.z * (cosY * cosX),
 		}
 	};
+}
+
+FH::FHGameObject::FHGameObject(uint32_t objectId)
+	: m_Id{ objectId }
+{}
+
+void FH::FHGameObject::SetDescriptorSetAtFrame(int frame, VkDescriptorSet descriptorSet)
+{
+	if (m_ObjectDescriptorSets.size() < frame + 1)
+		//Add more space for descriptor sets
+		m_ObjectDescriptorSets.resize(frame + 1);
+	
+	m_ObjectDescriptorSets[frame] = descriptorSet;
+}
+
+FH::FHGameObject FH::FHGameObject::CreateDirectionalLight(float intensity, glm::vec3 direction, glm::vec3 color)
+{
+	FHGameObject gameObject = CreateGameObject();
+	gameObject.m_Color = color;
+	gameObject.m_DirLightComp = std::make_unique<DirectionalLightComponent>();
+	gameObject.m_DirLightComp->lightIntensity = intensity;
+	gameObject.m_DirLightComp->direction = glm::normalize(direction);
+	return gameObject;
 }

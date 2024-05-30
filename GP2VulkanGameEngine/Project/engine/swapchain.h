@@ -44,6 +44,8 @@ namespace FH {
                 && swapChain.m_SwapChainImageFormat == m_SwapChainImageFormat;
         }
 
+        static VkImageView CreateImageView(FHDevice& device, VkImage image, VkFormat format);
+    
     private:
         void Init();
         void CreateSwapChain();

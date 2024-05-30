@@ -31,31 +31,33 @@ namespace FH
 /////////////////////////////
 
 FH::FHRenderSystem::FHRenderSystem(
-	FHDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout)
+	FHDevice& device, VkRenderPass renderPass, 
+	const std::vector<VkDescriptorSetLayout>& globalSetLayouts)
 	: m_FHDevice{ device }
 {
-	CreatePipelineLayout(globalSetLayout);
+	CreatePipelineLayout(globalSetLayouts);
 	CreatePipeline(renderPass);
 
-	CreatePipelineLayout2D();
-	CreatePipeline2D(renderPass);
+	//CreatePipelineLayout2D();
+	//CreatePipeline2D(renderPass);
 }
 
 FH::FHRenderSystem::~FHRenderSystem()
 {
 	vkDestroyPipelineLayout(m_FHDevice.GetDevice(), m_FHPipelineLayout, nullptr);
-	vkDestroyPipelineLayout(m_FHDevice.GetDevice(), m_FHPipelineLayout2D, nullptr);
+	//vkDestroyPipelineLayout(m_FHDevice.GetDevice(), m_FHPipelineLayout2D, nullptr);
 
 }
 
-void FH::FHRenderSystem::CreatePipelineLayout(VkDescriptorSetLayout globalSetLayout)
+void FH::FHRenderSystem::CreatePipelineLayout(
+	const std::vector<VkDescriptorSetLayout>& globalSetLayouts)
 {
 	VkPushConstantRange pushConstantRange{};
 	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 	pushConstantRange.offset = 0;
 	pushConstantRange.size = sizeof(PushConstantData3D);
 
-	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalSetLayout };
+	std::vector<VkDescriptorSetLayout> descriptorSetLayouts{ globalSetLayouts };
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -63,8 +65,9 @@ void FH::FHRenderSystem::CreatePipelineLayout(VkDescriptorSetLayout globalSetLay
 	pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
 	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	if (vkCreatePipelineLayout(m_FHDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &m_FHPipelineLayout)
-		!= VK_SUCCESS)
+
+	if (vkCreatePipelineLayout(m_FHDevice.GetDevice(), &pipelineLayoutInfo, 
+		nullptr, &m_FHPipelineLayout) != VK_SUCCESS)
 		throw std::runtime_error("failed to create pipeline layout!");
 }
 
@@ -80,7 +83,8 @@ void FH::FHRenderSystem::CreatePipeline(VkRenderPass renderPass)
 		(m_FHDevice, "shaders/shader.vert.spv", "shaders/shader.frag.spv", pipelineConfig);
 }
 
-void FH::FHRenderSystem::RenderGameObjects(FHFrameInfo& frameInfo, std::vector<FHGameObject>& gameObjects)
+void FH::FHRenderSystem::RenderGameObjects(FHFrameInfo& frameInfo, 
+	std::vector<FHGameObject*>& gameObjects)
 {
 	m_pFHPipeline->Bind(frameInfo.m_CommandBuffer);
 
@@ -96,9 +100,21 @@ void FH::FHRenderSystem::RenderGameObjects(FHFrameInfo& frameInfo, std::vector<F
 
 	for (auto& o : gameObjects)
 	{
+		// Bind descriptor set for access to object specific textures
+		VkDescriptorSet objectDescriptorSet = o->GetDescriptorSetAtFrame(frameInfo.m_FrameIdx);
+		vkCmdBindDescriptorSets(
+			frameInfo.m_CommandBuffer, 
+			VK_PIPELINE_BIND_POINT_GRAPHICS, 
+			m_FHPipelineLayout,
+			1, 1, 
+			&objectDescriptorSet, 
+			0, 
+			nullptr
+		);
+
 		PushConstantData3D push{};
-		push.modelMatrix = o.m_Transform.GetMatrix();
-		push.normalMatrix = o.m_Transform.GetNormalMatrix();
+		push.modelMatrix = o->m_Transform.GetModelMatrix();
+		push.normalMatrix = o->m_Transform.GetNormalMatrix();
 
 		vkCmdPushConstants(
 			frameInfo.m_CommandBuffer,
@@ -108,8 +124,9 @@ void FH::FHRenderSystem::RenderGameObjects(FHFrameInfo& frameInfo, std::vector<F
 			sizeof(PushConstantData3D),
 			&push
 		);
-		o.m_Model->Bind(frameInfo.m_CommandBuffer);
-		o.m_Model->Draw(frameInfo.m_CommandBuffer);
+
+		o->m_Model->Bind(frameInfo.m_CommandBuffer);
+		o->m_Model->Draw(frameInfo.m_CommandBuffer);
 	}
 }
 
@@ -118,65 +135,65 @@ void FH::FHRenderSystem::RenderGameObjects(FHFrameInfo& frameInfo, std::vector<F
 /////////////////////////////
 // 2D RENDERSYSTEM FUNCTIONS
 /////////////////////////////
-
-void FH::FHRenderSystem::CreatePipelineLayout2D()
-{
-	VkPushConstantRange pushConstantRange{};
-	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	pushConstantRange.offset = 0;
-	pushConstantRange.size = sizeof(PushConstantData2D);
-
-	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0;
-	pipelineLayoutInfo.pSetLayouts = nullptr;
-	pipelineLayoutInfo.pushConstantRangeCount = 1;
-	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-	if (vkCreatePipelineLayout(m_FHDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &m_FHPipelineLayout2D) != VK_SUCCESS)
-		throw std::runtime_error("failed to create pipeline layout!");
-}
-
-void FH::FHRenderSystem::CreatePipeline2D(VkRenderPass renderPass)
-{
-	assert(m_FHPipelineLayout2D != nullptr && "Cannot create pipeline without pipeline layout");
-
-	PipelineConfigInfo pipelineConfig{};
-	FHPipeline::DefaultPipelineConfigInfo(pipelineConfig, true);
-	pipelineConfig.renderPass = renderPass;
-	pipelineConfig.pipelineLayout = m_FHPipelineLayout2D;
-	m_pFHPipeline2D = std::make_unique<FHPipeline>
-		(m_FHDevice, "shaders/shader2D.vert.spv", "shaders/shader2D.frag.spv", pipelineConfig);
-}
-
-void FH::FHRenderSystem::RenderGameObjects2D(FHFrameInfo& frameInfo, std::vector<FHGameObject2D>& gameObjects)
-{
-	//update
-	float i{};
-	for (auto& o : gameObjects)
-	{
-		i += Time::GetDeltaTime();
-		o.m_Transform2D.rotation = glm::mod(o.m_Transform2D.rotation + i * 0.1f, glm::two_pi<float>());
-	}
-
-	//render
-	m_pFHPipeline2D->Bind(frameInfo.m_CommandBuffer);
-
-	for (auto& o : gameObjects)
-	{
-		PushConstantData2D push{};
-		push.offset = o.m_Transform2D.translation;
-		push.color = o.m_Color;
-		push.transform = o.m_Transform2D.GetMatrix();
-
-		vkCmdPushConstants(
-			frameInfo.m_CommandBuffer,
-			m_FHPipelineLayout2D,
-			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-			0,
-			sizeof(PushConstantData2D),
-			&push
-		);
-		o.m_Model->Bind(frameInfo.m_CommandBuffer);
-		o.m_Model->Draw(frameInfo.m_CommandBuffer);
-	}
-}
+//
+//void FH::FHRenderSystem::CreatePipelineLayout2D()
+//{
+//	VkPushConstantRange pushConstantRange{};
+//	pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+//	pushConstantRange.offset = 0;
+//	pushConstantRange.size = sizeof(PushConstantData2D);
+//
+//	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+//	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+//	pipelineLayoutInfo.setLayoutCount = 0;
+//	pipelineLayoutInfo.pSetLayouts = nullptr;
+//	pipelineLayoutInfo.pushConstantRangeCount = 1;
+//	pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+//	if (vkCreatePipelineLayout(m_FHDevice.GetDevice(), &pipelineLayoutInfo, nullptr, &m_FHPipelineLayout2D) != VK_SUCCESS)
+//		throw std::runtime_error("failed to create pipeline layout!");
+//}
+//
+//void FH::FHRenderSystem::CreatePipeline2D(VkRenderPass renderPass)
+//{
+//	assert(m_FHPipelineLayout2D != nullptr && "Cannot create pipeline without pipeline layout");
+//
+//	PipelineConfigInfo pipelineConfig{};
+//	FHPipeline::DefaultPipelineConfigInfo(pipelineConfig, true);
+//	pipelineConfig.renderPass = renderPass;
+//	pipelineConfig.pipelineLayout = m_FHPipelineLayout2D;
+//	m_pFHPipeline2D = std::make_unique<FHPipeline>
+//		(m_FHDevice, "shaders/shader2D.vert.spv", "shaders/shader2D.frag.spv", pipelineConfig);
+//}
+//
+//void FH::FHRenderSystem::RenderGameObjects2D(FHFrameInfo& frameInfo, std::vector<FHGameObject2D>& gameObjects)
+//{
+//	//update
+//	float i{};
+//	for (auto& o : gameObjects)
+//	{
+//		i += Time::GetDeltaTime();
+//		o.m_Transform2D.rotation = glm::mod(o.m_Transform2D.rotation + i * 0.1f, glm::two_pi<float>());
+//	}
+//
+//	//render
+//	m_pFHPipeline2D->Bind(frameInfo.m_CommandBuffer);
+//
+//	for (auto& o : gameObjects)
+//	{
+//		PushConstantData2D push{};
+//		push.offset = o.m_Transform2D.translation;
+//		push.color = o.m_Color;
+//		push.transform = o.m_Transform2D.GetMatrix();
+//
+//		vkCmdPushConstants(
+//			frameInfo.m_CommandBuffer,
+//			m_FHPipelineLayout2D,
+//			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+//			0,
+//			sizeof(PushConstantData2D),
+//			&push
+//		);
+//		o.m_Model->Bind(frameInfo.m_CommandBuffer);
+//		o.m_Model->Draw(frameInfo.m_CommandBuffer);
+//	}
+//}

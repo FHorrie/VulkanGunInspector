@@ -14,7 +14,8 @@ namespace FH
 	class FHRenderSystem
 	{
 	public:
-		FHRenderSystem(FHDevice& device, VkRenderPass renderPass, VkDescriptorSetLayout globalSetLayout);
+		FHRenderSystem(FHDevice& device, VkRenderPass renderPass,
+			const std::vector<VkDescriptorSetLayout>& globalSetLayout);
 		~FHRenderSystem();
 
 		FHRenderSystem(const FHRenderSystem&) = delete;
@@ -22,21 +23,22 @@ namespace FH
 		FHRenderSystem& operator=(const FHRenderSystem&) = delete;
 		FHRenderSystem& operator=(FHRenderSystem&&) = default;
 
-		void RenderGameObjects(FHFrameInfo& frameInfo, std::vector<FHGameObject>& gameObjects);
+		void RenderGameObjects(FHFrameInfo& frameInfo, 
+			std::vector<FHGameObject*>& gameObjects);
 		
-		void RenderGameObjects2D(FHFrameInfo& frameInfo, std::vector<FHGameObject2D>& gameObjects);
+		//void RenderGameObjects2D(FHFrameInfo& frameInfo, std::vector<FHGameObject2D>& gameObjects2D);
 
 	private:
-		void CreatePipelineLayout(VkDescriptorSetLayout globalSetLayout);
+		void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& globalSetLayouts);
 		void CreatePipeline(VkRenderPass renderPass);
 		
-		void CreatePipelineLayout2D();
-		void CreatePipeline2D(VkRenderPass renderPass);
-
-		FHDevice& m_FHDevice;
 		VkPipelineLayout m_FHPipelineLayout{};
-		VkPipelineLayout m_FHPipelineLayout2D{};
 		std::unique_ptr<FHPipeline> m_pFHPipeline{};
-		std::unique_ptr<FHPipeline> m_pFHPipeline2D{};
+		FHDevice& m_FHDevice;
+		
+		//void CreatePipelineLayout2D();
+		//void CreatePipeline2D(VkRenderPass renderPass);
+		//VkPipelineLayout m_FHPipelineLayout2D{};
+		//std::unique_ptr<FHPipeline> m_pFHPipeline2D{};
 	};
 }

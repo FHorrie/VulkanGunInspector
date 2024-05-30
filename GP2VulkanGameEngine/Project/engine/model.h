@@ -71,7 +71,7 @@ namespace FH
 	{
 	public:
 
-		struct Vertex
+		struct Vertex2D
 		{
 			glm::vec2 pos;
 			glm::vec3 color;
@@ -80,7 +80,7 @@ namespace FH
 			static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();
 		};
 
-		FHModel2D(FHDevice& device, const std::vector<Vertex>& vertices);
+		FHModel2D(FHDevice& device, const std::vector<Vertex2D>& vertices);
 		~FHModel2D() = default;
 
 		FHModel2D(const FHModel2D&) = delete;
@@ -90,7 +90,7 @@ namespace FH
 		void Draw(VkCommandBuffer commandBuffer);
 
 	private:
-		void CreateVertexBuffers(const std::vector<Vertex>& vertices);
+		void CreateVertexBuffers(const std::vector<Vertex2D>& vertices);
 
 		FHDevice& m_FHDevice;
 

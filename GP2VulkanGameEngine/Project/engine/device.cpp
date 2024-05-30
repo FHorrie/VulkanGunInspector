@@ -146,7 +146,7 @@ void FH::FHDevice::CreateLogicalDevice()
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
 
-    float queuePriority = 1.0f;
+    float queuePriority{ 1.0f };
     for (uint32_t queueFamily : uniqueQueueFamilies) 
     {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -157,7 +157,7 @@ void FH::FHDevice::CreateLogicalDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures = {};
+    VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo = {};
@@ -223,7 +223,8 @@ bool FH::FHDevice::IsDeviceSuitable(VkPhysicalDevice device)
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
     return 
-        indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
+        indices.isComplete() && extensionsSupported && swapChainAdequate 
+        && supportedFeatures.samplerAnisotropy;
 }
 
 void FH::FHDevice::PopulateDebugMessengerCreateInfo(

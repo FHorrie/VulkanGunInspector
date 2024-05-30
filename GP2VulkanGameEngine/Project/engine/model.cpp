@@ -156,7 +156,7 @@ void FH::FHModel::CreateIndexBuffers(const std::vector<uint32_t>& indices)
 std::unique_ptr<FH::FHModel> FH::FHModel::CreateModelFromFile(FHDevice& device, const std::string& filePath)
 {
 	ModelData data{};
-	data.LoadModel(filePath);
+	data.LoadModel("resources/" + filePath);
 	std::cout << "Vertex count: " << data.vertices.size() << std::endl;
 	return std::make_unique<FHModel>(device, data);
 }
@@ -191,7 +191,8 @@ std::vector<VkVertexInputBindingDescription> FH::FHModel::Vertex::GetBindingDesc
 }
 
 std::vector<VkVertexInputAttributeDescription> FH::FHModel::Vertex::GetAttributeDescriptions()
-{ //Matches vertex struct
+{ 
+	//Matches vertex struct
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 	//Position
 	attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos) });
@@ -209,13 +210,13 @@ std::vector<VkVertexInputAttributeDescription> FH::FHModel::Vertex::GetAttribute
 // MODEL 2D FUNCTIONS
 //////////////////////
 
-FH::FHModel2D::FHModel2D(FHDevice& device, const std::vector<FH::FHModel2D::Vertex>& vertices)
+FH::FHModel2D::FHModel2D(FHDevice& device, const std::vector<FH::FHModel2D::Vertex2D>& vertices)
 	: m_FHDevice{ device }
 {
 	CreateVertexBuffers(vertices);
 }
 
-void FH::FHModel2D::CreateVertexBuffers(const std::vector<Vertex>& vertices)
+void FH::FHModel2D::CreateVertexBuffers(const std::vector<Vertex2D>& vertices)
 {
 	m_VertexCount = static_cast<uint32_t>(vertices.size());
 	assert(m_VertexCount >= 3 && "Vertex count must be at least 3 (1 triangle)");
@@ -259,23 +260,23 @@ void FH::FHModel2D::Draw(VkCommandBuffer commandBuffer)
 	vkCmdDraw(commandBuffer, m_VertexCount, 1, 0, 0);
 }
 
-std::vector<VkVertexInputBindingDescription> FH::FHModel2D::Vertex::GetBindingDescriptions()
+std::vector<VkVertexInputBindingDescription> FH::FHModel2D::Vertex2D::GetBindingDescriptions()
 {
 	std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
 	bindingDescriptions[0].binding = 0;
-	bindingDescriptions[0].stride = sizeof(Vertex);
+	bindingDescriptions[0].stride = sizeof(Vertex2D);
 	bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 	return bindingDescriptions;
 }
 
-std::vector<VkVertexInputAttributeDescription> FH::FHModel2D::Vertex::GetAttributeDescriptions()
+std::vector<VkVertexInputAttributeDescription> FH::FHModel2D::Vertex2D::GetAttributeDescriptions()
 {
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 	//Position
-	attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, pos) });
+	attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex2D, pos) });
 
 	//Color
-	attributeDescriptions.push_back({ 0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color) });
+	attributeDescriptions.push_back({ 0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex2D, color) });
 
 	return attributeDescriptions;
 }

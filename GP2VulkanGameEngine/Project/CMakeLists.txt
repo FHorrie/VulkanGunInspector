@@ -26,28 +26,25 @@ add_custom_target(
 
 set(SOURCES
  "prim/main.cpp"
- "prim/App.h" "prim/App.cpp"
- "external/stb_image.h"
- "engine/window.h" "engine/window.cpp"
- "engine/pipeline.h" "engine/pipeline.cpp"
- "engine/device.h" "engine/device.cpp"
- "engine/swapchain.h" "engine/swapchain.cpp"
- "engine/model.h" "engine/model.cpp"
- "engine/gameObject.h" "engine/gameObject.cpp"
- "engine/renderer.h" "engine/renderer.cpp"
- "engine/renderSystem.h" "engine/renderSystem.cpp" 
- "engine/FHTime.h" "engine/FHTime.cpp"
- "camera.h" "camera.cpp"
- "engine/keyboardInput.h" "engine/keyboardInput.cpp"
- "engine/utils.h"  
- "engine/buffer.h" "engine/buffer.cpp" 
- "engine/frameInfo.h" 
- "engine/descriptors.h" "engine/descriptors.cpp"
- "engine/texture.h" "engine/texture.cpp"
+ "prim/App.cpp"
+ "engine/window.cpp"
+ "engine/pipeline.cpp"
+ "engine/device.cpp"
+ "engine/swapchain.cpp"
+ "engine/model.cpp"
+ "engine/gameObject.cpp"
+ "engine/renderer.cpp"
+ "engine/renderSystem.cpp" 
+ "engine/FHTime.cpp"
+ "camera.cpp"
+ "engine/keyboardInput.cpp"
+ "engine/buffer.cpp" 
+ "engine/descriptors.cpp"
+ "engine/texture.cpp"
 )
 
 # Create the executable
-add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES} "engine/texture.h")
+add_executable(${PROJECT_NAME} ${SOURCES} ${GLSL_SOURCE_FILES})
 add_dependencies(${PROJECT_NAME} Shaders)
 
 # Link libraries

@@ -40,6 +40,7 @@ namespace FH
 
         VkCommandPool GetCommandPool() const { return m_CommandPool; }
         VkDevice GetDevice() const { return m_FHDevice; }
+        VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
         VkSurfaceKHR GetSurface() const { return m_Surface; }
         VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
         VkQueue GetPresentQueue() const { return m_PresentQueue; }
