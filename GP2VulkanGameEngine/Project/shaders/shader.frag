@@ -14,7 +14,7 @@ struct DirectionalLight
     vec4 color;
 };
 
-layout(set = 0, binding = 0) uniform GlobalUbo 
+layout(set = 0, binding = 0) uniform GlobalUbo
 {
 	mat4 projectionMatrix;
 	mat4 viewMatrix;
@@ -23,7 +23,11 @@ layout(set = 0, binding = 0) uniform GlobalUbo
 	int nDirectionalLights;
 } ubo;
 
-layout(set = 1, binding = 0) uniform sampler2D textureImage;
+layout(set = 1, binding = 0) uniform sampler2D textureDiffuseImage;
+layout(set = 1, binding = 1) uniform sampler2D textureNormalImage;
+layout(set = 1, binding = 2) uniform sampler2D textureRoughnessImage;
+layout(set = 1, binding = 3) uniform sampler2D textureMetallicImage;
+layout(set = 1, binding = 4) uniform sampler2D textureAOImage;
 
 layout(push_constant) uniform Push
 {
@@ -45,7 +49,7 @@ void main() {
         diffuseLight += lightIntensity * cosAngle;
     }
 
-	vec3 imageColor = texture(textureImage, fragUV).rgb;
+	vec3 imageColor = texture(textureNormalImage, fragUV).rgb;
 
     outColor = vec4((diffuseLight * fragColor) * imageColor, 1.0);
 }

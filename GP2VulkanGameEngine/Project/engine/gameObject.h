@@ -76,6 +76,10 @@ namespace FH
 		std::unique_ptr<FHModel> m_Model{};
 
 		std::unique_ptr<FHTexture> m_DiffuseTexture{};
+		std::unique_ptr<FHTexture> m_NormalTexture{};
+		std::unique_ptr<FHTexture> m_RoughnessTexture{};
+		std::unique_ptr<FHTexture> m_MetallicTexture{};
+		std::unique_ptr<FHTexture> m_AOTexture{};
 
 		std::unique_ptr<DirectionalLightComponent> m_DirLightComp{ nullptr };
 		glm::vec3 m_Color{};

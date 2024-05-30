@@ -54,6 +54,10 @@ void FH::FirstApp::Run()
     {
         FHDescriptorSetLayout::Builder(m_FHDevice)
             .AddBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
+            .AddBinding(4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT)
             .Build()
     };
 
@@ -63,7 +67,7 @@ void FH::FirstApp::Run()
         objectSetLayout->GetDescriptorSetLayout()
     };
 
-    auto texturePlaceHolder{ std::make_unique<FHTexture>(m_FHDevice, "textures/MissingTex.png") };
+    auto diffusePlaceHolder{ std::make_unique<FHTexture>(m_FHDevice, "textures/MissingTex.png") };
     
     for (int i{}; i < FHSwapChain::MAX_FRAMES_IN_FLIGHT; ++i)
     {
@@ -83,26 +87,55 @@ void FH::FirstApp::Run()
 
         for (int meshIdx{}; meshIdx < static_cast<int>(m_Models.size()); ++meshIdx)
         {
-            VkDescriptorImageInfo imageInfo{};
-
             auto currentObj = m_Models[meshIdx].get();
 
+            VkDescriptorImageInfo imageDiffuseInfo{};
             if (m_Models[meshIdx]->m_DiffuseTexture)
-            {
-                imageInfo.sampler = currentObj->m_DiffuseTexture->GetTextureSampler();
-                imageInfo.imageView = currentObj->m_DiffuseTexture->GetTextureImageView();
-                imageInfo.imageLayout = currentObj->m_DiffuseTexture->GetTextureImageLayout();
-            }
+                imageDiffuseInfo = {
+                    currentObj->m_DiffuseTexture->GetTextureSampler(),
+                    currentObj->m_DiffuseTexture->GetTextureImageView(),
+                    currentObj->m_DiffuseTexture->GetTextureImageLayout() };
             else
-            {
-                imageInfo.sampler = texturePlaceHolder->GetTextureSampler();
-                imageInfo.imageView = texturePlaceHolder->GetTextureImageView();
-                imageInfo.imageLayout = texturePlaceHolder->GetTextureImageLayout();
-            }
+                imageDiffuseInfo = {
+                    diffusePlaceHolder->GetTextureSampler(),
+                    diffusePlaceHolder->GetTextureImageView(),
+                    diffusePlaceHolder->GetTextureImageLayout() };
 
+            VkDescriptorImageInfo imageNormalInfo{};
+            if (m_Models[meshIdx]->m_NormalTexture)
+                imageNormalInfo = {
+                    currentObj->m_NormalTexture->GetTextureSampler(),
+                    currentObj->m_NormalTexture->GetTextureImageView(),
+                    currentObj->m_NormalTexture->GetTextureImageLayout() };
+
+            VkDescriptorImageInfo imageRoughnessInfo{};
+            if (m_Models[meshIdx]->m_RoughnessTexture)
+                imageRoughnessInfo = {
+                    currentObj->m_RoughnessTexture->GetTextureSampler(),
+                    currentObj->m_RoughnessTexture->GetTextureImageView(),
+                    currentObj->m_RoughnessTexture->GetTextureImageLayout() };
+
+            VkDescriptorImageInfo imageMetallicInfo{};
+            if (m_Models[meshIdx]->m_MetallicTexture)
+                imageMetallicInfo = {
+                    currentObj->m_MetallicTexture->GetTextureSampler(),
+                    currentObj->m_MetallicTexture->GetTextureImageView(),
+                    currentObj->m_MetallicTexture->GetTextureImageLayout() };
+
+            VkDescriptorImageInfo imageAOInfo{};
+            if (m_Models[meshIdx]->m_AOTexture)
+                imageAOInfo = {
+                    currentObj->m_AOTexture->GetTextureSampler(),
+                    currentObj->m_AOTexture->GetTextureImageView(),
+                    currentObj->m_AOTexture->GetTextureImageLayout() };
+            
             VkDescriptorSet descriptorSet{};
             FHDescriptorWriter(*objectSetLayout, *m_pAppPool)
-                .WriteImage(0, &imageInfo)
+                .WriteImage(0, &imageDiffuseInfo)
+                .WriteImage(1, &imageNormalInfo)
+                .WriteImage(2, &imageRoughnessInfo)
+                .WriteImage(3, &imageMetallicInfo)
+                .WriteImage(4, &imageAOInfo)
                 .Build(descriptorSet);
 
             currentObj->SetDescriptorSetAtFrame(i, descriptorSet);
@@ -207,12 +240,23 @@ void FH::FirstApp::LoadGameObjects()
         "models/deagle.obj");
 
     auto deagle = std::make_unique<FHGameObject>(FHGameObject::CreateGameObject());
-    auto deagleTexture = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle_diffuse.png");
+
     deagle->m_Model = std::move(deagleModel);
     deagle->m_Transform.translation = { 0.f, 3.5f, 2.5f };
     deagle->m_Transform.scale = { 0.25f, 0.25f, 0.25f };
     deagle->m_Transform.rotation = { 0.f, 0.f, 0.f };
-    deagle->m_DiffuseTexture = std::move(deagleTexture);
+
+    auto deagleDiffuseMap = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle/deagle_diffuse.png");
+    auto deagleNormalMap = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle/deagle_normal.png");
+    auto deagleRoughnessMap = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle/deagle_roughness.png");
+    auto deagleMetallicMap = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle/deagle_metallic.png");
+    auto deagleAOMap = std::make_unique<FHTexture>(m_FHDevice, "textures/deagle/deagle_ao.png");
+
+    deagle->m_DiffuseTexture = std::move(deagleDiffuseMap);
+    deagle->m_NormalTexture = std::move(deagleNormalMap);
+    deagle->m_RoughnessTexture = std::move(deagleRoughnessMap);
+    deagle->m_MetallicTexture = std::move(deagleMetallicMap);
+    deagle->m_AOTexture = std::move(deagleAOMap);
 
     m_Models.push_back(std::move(deagle));
 
@@ -220,12 +264,22 @@ void FH::FirstApp::LoadGameObjects()
         "models/ak47.obj");
 
     auto ak47 = std::make_unique<FHGameObject>(FHGameObject::CreateGameObject());
-    auto ak47Texture = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47_diffuse.png");
     ak47->m_Model = std::move(akModel);
     ak47->m_Transform.translation = { 0.f, 0.5f, 2.5f };
     ak47->m_Transform.scale = { 0.25f, 0.25f, 0.25f };
     ak47->m_Transform.rotation = { 0.f, 0.f, 0.f };
-    ak47->m_DiffuseTexture = std::move(ak47Texture);
+
+    auto ak47DiffuseMap = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47/ak47_diffuse.png");
+    auto ak47NormalMap = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47/ak47_normal.png");
+    auto ak47RoughnessMap = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47/ak47_roughness.png");
+    auto ak47MetallicMap = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47/ak47_metallic.png");
+    auto ak47AOMap = std::make_unique<FHTexture>(m_FHDevice, "textures/ak47/ak47_ao.png");
+
+    ak47->m_DiffuseTexture = std::move(ak47DiffuseMap);
+    ak47->m_NormalTexture = std::move(ak47NormalMap);
+    ak47->m_RoughnessTexture = std::move(ak47RoughnessMap);
+    ak47->m_MetallicTexture = std::move(ak47MetallicMap);
+    ak47->m_AOTexture = std::move(ak47AOMap);
 
     m_Models.push_back(std::move(ak47));
 
@@ -233,12 +287,23 @@ void FH::FirstApp::LoadGameObjects()
         "models/m4a4.obj");
 
     auto m4a4 = std::make_unique<FHGameObject>(FHGameObject::CreateGameObject());
-    auto m4a4Texture = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4_diffuse.png");
+
     m4a4->m_Model = std::move(m4a4Model);
     m4a4->m_Transform.translation = { 0.f, -2.5f, 2.5f };
     m4a4->m_Transform.scale = { 0.25f, 0.25f, 0.25f };
     m4a4->m_Transform.rotation = { 0.f, 0.f, 0.f };
-    m4a4->m_DiffuseTexture = std::move(m4a4Texture);
+
+    auto m4a4DiffuseMap = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4/m4a4_diffuse.png");
+    auto m4a4NormalMap = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4/m4a4_normal.png");
+    auto m4a4RoughnessMap = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4/m4a4_roughness.png");
+    auto m4a4MetallicMap = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4/m4a4_metallic.png");
+    auto m4a4AOMap = std::make_unique<FHTexture>(m_FHDevice, "textures/m4a4/m4a4_ao.png");
+
+    m4a4->m_DiffuseTexture = std::move(m4a4DiffuseMap);
+    m4a4->m_NormalTexture = std::move(m4a4NormalMap);
+    m4a4->m_RoughnessTexture = std::move(m4a4RoughnessMap);
+    m4a4->m_MetallicTexture = std::move(m4a4MetallicMap);
+    m4a4->m_AOTexture = std::move(m4a4AOMap);
 
     m_Models.push_back(std::move(m4a4));
 
