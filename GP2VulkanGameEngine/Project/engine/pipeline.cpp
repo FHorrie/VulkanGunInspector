@@ -6,10 +6,10 @@
 #include <cassert>
 
 
-FH::FHPipeline::FHPipeline(FHDevice& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo)
+FH::FHPipeline::FHPipeline(FHDevice& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo, bool is2D)
 	: m_Device{ device }
 {
-	CreateGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
+	CreateGraphicsPipeline(vertFilepath, fragFilepath, configInfo, is2D);
 }
 
 FH::FHPipeline::~FHPipeline()
@@ -117,7 +117,8 @@ std::vector<char> FH::FHPipeline::ReadFile(const std::string& filePath)
 	return buffer;
 }
 
-void FH::FHPipeline::CreateGraphicsPipeline(const std::string& vertFilePath, const std::string& fragFilePath, const PipelineConfigInfo& configInfo)
+void FH::FHPipeline::CreateGraphicsPipeline(const std::string& vertFilePath, 
+	const std::string& fragFilePath, const PipelineConfigInfo& configInfo, bool is2D)
 {
 	assert(configInfo.pipelineLayout != VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
 	assert(configInfo.renderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
@@ -147,8 +148,19 @@ void FH::FHPipeline::CreateGraphicsPipeline(const std::string& vertFilePath, con
 	shaderStages[1].pNext = nullptr;
 	shaderStages[1].pSpecializationInfo = nullptr;
 
-	auto attributeDescriptions = FH::FHModel::Vertex::GetAttributeDescriptions();
-	auto bindingDescriptions = FH::FHModel::Vertex::GetBindingDescriptions();
+	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{}; 
+	std::vector<VkVertexInputBindingDescription> bindingDescriptions{};
+
+	if (is2D)
+	{
+		attributeDescriptions = FH::FHModel2D::Vertex2D::GetAttributeDescriptions();
+		bindingDescriptions = FH::FHModel2D::Vertex2D::GetBindingDescriptions();
+	}
+	else
+	{
+		attributeDescriptions = FH::FHModel::Vertex::GetAttributeDescriptions();
+		bindingDescriptions = FH::FHModel::Vertex::GetBindingDescriptions();
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

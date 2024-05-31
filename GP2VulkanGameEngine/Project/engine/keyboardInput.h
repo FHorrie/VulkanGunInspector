@@ -20,9 +20,12 @@ namespace FH
 			int moveDown{ GLFW_KEY_Q };
 
 			int toggleModelRotate{GLFW_KEY_F5};
+			int cycleModelLeft{GLFW_KEY_LEFT};
+			int cycleModelRight{GLFW_KEY_RIGHT};
 		};
 
-		void MoveInPlaneXZ(GLFWwindow* window, FHGameObject& gameObject, FirstApp* app);
+		void MoveInPlaneXZ(GLFWwindow* window, FHGameObject& gameObject);
+		void UpdateSceneInputs(GLFWwindow* window, FirstApp* app);
 
 	private:
 		KeyMappings m_Keys{};
@@ -31,5 +34,9 @@ namespace FH
 
 		inline static bool FIRST_PASS{ true };
 		double m_PreviousXPos{}, m_PreviousYPos{};
+
+		bool m_RotateButtonPressed{};
+		bool m_LeftButtonPressed{};
+		bool m_RightButtonPressed{};
 	};
 }

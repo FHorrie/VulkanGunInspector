@@ -1,8 +1,9 @@
 #include "model.h"
 #include "utils.h"
 
-#define TINYOBJECTLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "external/tiny_obj_loader.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/hash.hpp"
 
@@ -49,10 +50,10 @@ void FH::FHModel::ModelData::LoadModel(const std::string& filePath)
 			Vertex vertex{};
 			if (index.vertex_index >= 0)
 			{
-				vertex.pos = { 
-					attribute.vertices[3 * index.vertex_index + 0], 
-					attribute.vertices[3 * index.vertex_index + 1], 
-					attribute.vertices[3 * index.vertex_index + 2] 
+				vertex.pos = {
+					attribute.vertices[3 * index.vertex_index + 0],
+					attribute.vertices[3 * index.vertex_index + 1],
+					attribute.vertices[3 * index.vertex_index + 2]
 				};
 			}
 			if (index.normal_index >= 0)
@@ -77,8 +78,28 @@ void FH::FHModel::ModelData::LoadModel(const std::string& filePath)
 				vertices.push_back(vertex);
 			}
 			indices.push_back(uniqueVertices[vertex]);
-
 		}
+
+	//Calculate Tangents
+	for (size_t currentIdx = 0; currentIdx < indices.size(); currentIdx += 3)
+	{
+		Vertex& vertex0{ vertices[indices[currentIdx]] };
+		Vertex& vertex1{ vertices[indices[currentIdx + 1]] };
+		Vertex& vertex2{ vertices[indices[currentIdx + 2]] };
+
+		const glm::vec3& edge0{ vertex1.pos - vertex0.pos };
+		const glm::vec3& edge1{ vertex2.pos - vertex0.pos };
+
+		const glm::vec2& diffX{ vertex1.uv.x - vertex0.uv.x, vertex2.uv.x - vertex0.uv.x };
+		const glm::vec2& diffY{ vertex1.uv.y - vertex0.uv.y, vertex2.uv.y - vertex0.uv.y };
+
+		float r{ 1.f / (diffX.x * diffY.y - diffX.y * diffY.x) };
+
+		glm::vec3 tangent = (edge0 * diffY.y - edge1 * diffY.x) * r;
+		vertex0.tangent += tangent;
+		vertex1.tangent += tangent;
+		vertex2.tangent += tangent;
+	}
 }
 
 FH::FHModel::FHModel(FHDevice& device, const ModelData& construction)
@@ -196,12 +217,12 @@ std::vector<VkVertexInputAttributeDescription> FH::FHModel::Vertex::GetAttribute
 	std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 	//Position
 	attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, pos) });
-	//Color
-	attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, color) });
 	//Normal
-	attributeDescriptions.push_back({ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal) });
+	attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, normal) });
 	//UV
-	attributeDescriptions.push_back({ 3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv) });
+	attributeDescriptions.push_back({ 2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex, uv) });
+	//Tangent
+	attributeDescriptions.push_back({ 3, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, tangent) });
 
 	return attributeDescriptions;
 }
@@ -276,7 +297,7 @@ std::vector<VkVertexInputAttributeDescription> FH::FHModel2D::Vertex2D::GetAttri
 	attributeDescriptions.push_back({ 0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(Vertex2D, pos) });
 
 	//Color
-	attributeDescriptions.push_back({ 0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex2D, color) });
+	attributeDescriptions.push_back({ 1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex2D, color) });
 
 	return attributeDescriptions;
 }

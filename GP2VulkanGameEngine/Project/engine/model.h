@@ -20,6 +20,7 @@ namespace FH
 			glm::vec3 color{1.f};
 			glm::vec3 normal{};
 			glm::vec2 uv{};
+			glm::vec3 tangent{};
 
 			static std::vector<VkVertexInputBindingDescription> GetBindingDescriptions();
 			static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions();

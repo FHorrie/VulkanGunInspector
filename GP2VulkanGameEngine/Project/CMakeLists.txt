@@ -35,6 +35,7 @@ set(SOURCES
  "engine/gameObject.cpp"
  "engine/renderer.cpp"
  "engine/renderSystem.cpp" 
+ "engine/renderSystem2D.cpp" 
  "engine/FHTime.cpp"
  "camera.cpp"
  "engine/keyboardInput.cpp"
@@ -50,8 +51,6 @@ add_dependencies(${PROJECT_NAME} Shaders)
 # Link libraries
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} glfw)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${Vulkan_LIBRARIES} tinyobjloader)
-
 
 # Set the directory for resources
 set(RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")

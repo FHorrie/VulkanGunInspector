@@ -31,7 +31,8 @@ namespace FH
 	class FHPipeline
 	{
 	public:
-		FHPipeline(FHDevice& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo);
+		FHPipeline(FHDevice& device, const std::string& vertFilepath, 
+			const std::string& fragFilepath, const PipelineConfigInfo& configInfo, bool is2D = false);
 		~FHPipeline();
 		FHPipeline(const FHPipeline&) = delete;
 		FHPipeline& operator=(const FHPipeline&) = delete;
@@ -43,7 +44,7 @@ namespace FH
 	private:
 		static std::vector<char> ReadFile(const std::string& filePath);
 
-		void CreateGraphicsPipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo);
+		void CreateGraphicsPipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo, bool is2D);
 
 		void CreateShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 

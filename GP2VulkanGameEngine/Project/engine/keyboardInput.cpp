@@ -2,11 +2,8 @@
 #include "FHTime.h"
 #include "prim/App.h"
 
-void FH::KeyboardInput::MoveInPlaneXZ(GLFWwindow* window, FHGameObject& gameObject, FirstApp* app)
+void FH::KeyboardInput::MoveInPlaneXZ(GLFWwindow* window, FHGameObject& gameObject)
 {
-	//TODO: move toggle input out of move function
-	if (glfwGetKey(window, m_Keys.toggleModelRotate) == GLFW_PRESS) app->ToggleModelRotate();
-
 	double xPos{}, yPos{};
 	glfwGetCursorPos(window, &xPos, &yPos);
 
@@ -49,4 +46,32 @@ void FH::KeyboardInput::MoveInPlaneXZ(GLFWwindow* window, FHGameObject& gameObje
 
 	if (glm::dot(moveDirection, moveDirection) > std::numeric_limits<float>::epsilon())
 		gameObject.m_Transform.translation += m_MoveSpeed * Time::GetDeltaTime() * glm::normalize(moveDirection);
+}
+
+void FH::KeyboardInput::UpdateSceneInputs(GLFWwindow* window, FirstApp* app)
+{
+	if (glfwGetKey(window, m_Keys.toggleModelRotate) == GLFW_PRESS && !m_RotateButtonPressed)
+	{
+		app->ToggleModelRotate();
+		m_RotateButtonPressed = true;
+	}
+	else if (glfwGetKey(window, m_Keys.toggleModelRotate) == GLFW_RELEASE && m_RotateButtonPressed)
+		m_RotateButtonPressed = false;
+
+	if (glfwGetKey(window, m_Keys.cycleModelLeft) == GLFW_PRESS && !m_LeftButtonPressed)
+	{
+		app->CycleModelLeft();
+		m_LeftButtonPressed = true;
+	}
+	else if (glfwGetKey(window, m_Keys.cycleModelLeft) == GLFW_RELEASE && m_LeftButtonPressed)
+		m_LeftButtonPressed = false;
+
+	if (glfwGetKey(window, m_Keys.cycleModelRight) == GLFW_PRESS && !m_RightButtonPressed)
+	{
+		app->CycleModelRight();
+		m_RightButtonPressed = true;
+	}
+	else if (glfwGetKey(window, m_Keys.cycleModelRight) == GLFW_RELEASE && m_RightButtonPressed)
+		m_RightButtonPressed = false;
+
 }

@@ -25,9 +25,9 @@ namespace FH
 
 		void RenderGameObjects(FHFrameInfo& frameInfo, 
 			std::vector<FHGameObject*>& gameObjects);
+		void RenderGameObject(FHFrameInfo& frameInfo,
+			FHGameObject* gameObject);
 		
-		//void RenderGameObjects2D(FHFrameInfo& frameInfo, std::vector<FHGameObject2D>& gameObjects2D);
-
 	private:
 		void CreatePipelineLayout(const std::vector<VkDescriptorSetLayout>& globalSetLayouts);
 		void CreatePipeline(VkRenderPass renderPass);
@@ -35,10 +35,5 @@ namespace FH
 		VkPipelineLayout m_FHPipelineLayout{};
 		std::unique_ptr<FHPipeline> m_pFHPipeline{};
 		FHDevice& m_FHDevice;
-		
-		//void CreatePipelineLayout2D();
-		//void CreatePipeline2D(VkRenderPass renderPass);
-		//VkPipelineLayout m_FHPipelineLayout2D{};
-		//std::unique_ptr<FHPipeline> m_pFHPipeline2D{};
 	};
 }

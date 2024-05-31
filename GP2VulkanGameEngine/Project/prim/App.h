@@ -29,13 +29,16 @@ namespace FH
 
 		void ToggleModelRotate() { m_ModelRotate = !m_ModelRotate; }
 
+		void CycleModelLeft();
+		void CycleModelRight();
+
 		void PrintControls();
 
 	private:
 		void LoadGameObjects();
-		//void LoadGameObjects2D();
+		void LoadGameObjects2D();
 
-		FHWindow m_FHWindow{ WIDTH, HEIGHT, "BULKAN - Horrie Finian - 2DAE09" };
+		FHWindow m_FHWindow{ WIDTH, HEIGHT, "Vulkan Gun Inspector - Horrie Finian - 2DAE09" };
 		FHDevice m_FHDevice{ m_FHWindow };
 		FHRenderer m_FHRenderer{ m_FHWindow, m_FHDevice };
 
@@ -43,10 +46,13 @@ namespace FH
 
 		//Define pool after device
 		std::unique_ptr<FHDescriptorPool> m_pAppPool{};
-		std::vector<std::unique_ptr<FHGameObject>> m_Models{};
-		std::vector<std::unique_ptr<FHGameObject>> m_DirLights{};
 
-		//std::vector<FHGameObject2D> m_GameObjects2D{};;
+		std::vector<std::unique_ptr<FHGameObject>> m_Models{};
+		int m_CurrentModelIdx{};
+
+		std::vector<FHGameObject2D> m_Models2D{};
+
+		std::unique_ptr<FHGameObject> m_DirLight{};
 	};
 
 	struct DirectionalLight
@@ -59,8 +65,7 @@ namespace FH
 	{
 		glm::mat4 m_Projection{ 1.f };
 		glm::mat4 m_View{ 1.f };
-		glm::vec4 m_AmbientLightColor{ 1.f, 1.f, 1.f, 0.02f/*-> light intensity*/};
-		DirectionalLight m_DirectionalLights[3]{};
-		int m_DirectionalLightAmount{};
+		DirectionalLight m_DirectionalLight{};
+		glm::vec3 m_CameraPos{};
 	};
 }
